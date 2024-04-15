@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -14,7 +13,7 @@ using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
-using MaxMind.GeoIP2;
+
 
 namespace Advertisement;
 
@@ -39,8 +38,7 @@ public class Ads : BasePlugin
 
             if (_config.LanguageMessages == null) return;
 
-            if (player.IpAddress != null)
-                _playerIsoCode.TryAdd(id.SteamId64, GetPlayerIsoCode(player.IpAddress.Split(':')[0]));
+
         });
 
         RegisterEventHandler<EventCsWinPanelRound>(EventCsWinPanelRound, HookMode.Pre);
@@ -142,8 +140,7 @@ public class Ads : BasePlugin
             {
                 if (player.IpAddress == null || player.AuthorizedSteamID == null) continue;
 
-                _playerIsoCode.TryAdd(player.AuthorizedSteamID.SteamId64,
-                    GetPlayerIsoCode(player.IpAddress.Split(':')[0]));
+                _playerIsoCode.TryAdd(player.AuthorizedSteamID.SteamId64,"127.0.0.1");
             }
         }
 
@@ -370,29 +367,6 @@ public class Ads : BasePlugin
         return config;
     }
 
-    private string GetPlayerIsoCode(string ip)
-    {
-        var defaultLang = string.Empty;
-        if (_config.DefaultLang != null)
-            defaultLang = _config.DefaultLang;
-
-        if (ip == "127.0.0.1") return defaultLang;
-
-        try
-        {
-            using var reader = new DatabaseReader(Path.Combine(ModuleDirectory, "GeoLite2-Country.mmdb"));
-
-            var response = reader.Country(IPAddress.Parse(ip));
-
-            return response.Country.IsoCode ?? defaultLang;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"{ex}");
-        }
-
-        return defaultLang;
-    }
 }
 
 public class Config
